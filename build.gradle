@@ -1,0 +1,77 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'java'
+}
+
+version = '1.0.0'
+group = 'com.enzulode'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.java.dev.jna:jna:5.13.0'
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def gitUsername = properties.getProperty('gpr.user')
+def gitToken = properties.getProperty('gpr.key')
+
+publishing {
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/enzulode/scrollable-gui")
+            credentials {
+                username = gitUsername
+                password = gitToken
+            }
+        }
+    }
+
+    publications {
+
+        mavenJava(MavenPublication) {
+            artifactId = 'scrollable-gui'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                name = 'Simple scrollable paged cli library'
+                description = 'A basic java approach for scrollable paged unix terminal gui'
+                developers {
+                    developer {
+                        id = 'enzulode'
+                        name = 'Vladislav Andreev'
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
